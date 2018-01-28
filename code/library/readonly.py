@@ -44,4 +44,21 @@ class Readonly(type):
         return type.__new__(NewMetaclass, classname, bases, classdict)
     # __new__
 
+    @staticmethod
+    def ConvertReadonlyAttributes(cls, instance):
+        def getAttrFromMetaclass(attr):
+            return lambda cls: getattr(cls, ".")[attr]
+        readonlyClass = type(instance)
+        setattr(readonlyClass, ".", {})
+        instanceAttributes = dir(instance)
+        clone = list(instanceAttributes)
+        for name in clone:
+            value = getattr(instance, name)
+            if not isinstance(value, cls.Attribute):
+                continue
+            delattr(instance, name)
+            getattr(readonlyClass, ".")[name] = value.value
+            aProperty = property(getAttrFromMetaclass(name))
+            setattr(readonlyClass, name, aProperty)
+
 # class Readonly
