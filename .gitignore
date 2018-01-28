@@ -1,2 +1,4 @@
 *.pyc
 *.bat
+*.html
+.vscode

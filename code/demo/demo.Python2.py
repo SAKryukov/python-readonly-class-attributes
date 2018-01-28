@@ -6,6 +6,9 @@ depend on any naming conventions
 
 (Read-only properties are easy on class instances, not so on class objects.)
 
+Original publication:
+https://www.codeproject.com/Articles/1227368/Python-Readonly-Class-Attributes
+Code:
 https://github.com/SAKryukov/python-readonly-class-attributes
 
 Based on the ideas of rIZenAShes, https://github.com/rIZenAShes:
