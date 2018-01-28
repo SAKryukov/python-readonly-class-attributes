@@ -2,6 +2,10 @@ Python Readonly Class Attributes: Complete Solution[](title)
 
 Reliable solution does the trick: it does not depend on any naming conventions, works for both Python 2 and 3 and offers clear and concise usage syntax
 
+<ul class="download">
+    <li>Source code <a href="https://github.com/SAKryukov/python-readonly-class-attributes">on GitHub</a></li>
+</ul>
+
 ## Contents[](notoc)
 
 [](toc)
