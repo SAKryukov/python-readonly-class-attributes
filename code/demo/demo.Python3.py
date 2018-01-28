@@ -43,15 +43,3 @@ try:
     Foo.test = Foo.test + 1 # will raise exception
 except Exception:
     print ("Cannot set attribute Foo.test")
-
-class ReadonlyInstanceFactory(object):
-    def __init__(self):
-        self.a = "a"
-        self.b = "b"
-        self.c = Readonly.Attribute("c")
-        Readonly.ConvertReadonlyAttributes(self)
-
-readonlyInstance = ReadonlyInstanceFactory()
-print(readonlyInstance.a)
-print(readonlyInstance.b)
-print(readonlyInstance.c)

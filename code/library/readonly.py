@@ -51,31 +51,4 @@ class Readonly(type):
         return type.__new__(NewMetaclass, classname, bases, classdict)
     # __new__
 
-    @classmethod # for instance attributes, to make them readonly
-    def ConvertReadonlyAttributes(cls, instance):
-        oldStyleClass = type(instance) != instance.__class__ # can happen with Python 2.*.* 
-        if oldStyleClass:
-            raise cls.OldStyleTypeException(instance, type(instance))
-        def getAttrFromMetaclass(attr):
-            return lambda cls: getattr(cls, DefinitionSet.hiddenAttributeContainerName)[attr]
-        readonlyClass = type(instance)
-        setattr(readonlyClass, DefinitionSet.hiddenAttributeContainerName, {})
-        instanceAttributes = dir(instance)
-        clone = list(instanceAttributes)
-        for name in clone:
-            value = getattr(instance, name)
-            if not isinstance(value, cls.Attribute):
-                continue
-            delattr(instance, name)
-            getattr(readonlyClass, DefinitionSet.hiddenAttributeContainerName)[name] = value.value
-            aProperty = property(getAttrFromMetaclass(name))
-            setattr(readonlyClass, name, aProperty)
-
-    class OldStyleTypeException(TypeError):
-        def __init__(self, anInstance, cls):
-            TypeError.__init__(
-                self,
-                DefinitionSet.exceptionMsgOldStyleClass,
-                dict(oldStyleClass=cls, instance=anInstance))
-
 # class Readonly
