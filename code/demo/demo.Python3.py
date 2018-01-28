@@ -1,3 +1,24 @@
+''' 
+Read-only class attributes
+
+This is a comprehensive solution which does not
+depend on any naming conventions
+
+(Read-only properties are easy on class instances, not so on class objects.)
+
+https://github.com/SAKryukov/python-readonly-class-attributes
+
+Based on the ideas of rIZenAShes, https://github.com/rIZenAShes:
+https://gist.github.com/rIZenAShes/8469932
+
+Copyright (C) 2012 by Sergey A Kryukov
+
+http://www.SAKryukov.org
+https://github.com/SAKryukov
+https://www.codeproject.com/Members/SAKryukov
+
+'''
+
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from library.readonly import Readonly
