@@ -4,6 +4,8 @@ Read-only class attributes
 This is a comprehensive solution which does not
 depend on any naming conventions
 
+Readonly.Attribute instances assigned to attributes are converted to read-only properties 
+
 (Read-only properties are easy on class instances, not so on class objects.)
 
 Original publication:
@@ -14,7 +16,7 @@ https://github.com/SAKryukov/python-readonly-class-attributes
 Based on the ideas of rIZenAShes, https://github.com/rIZenAShes:
 https://gist.github.com/rIZenAShes/8469932
 
-Copyright (C) 2012 by Sergey A Kryukov
+Copyright (C) 2018 by Sergey A Kryukov
 
 http://www.SAKryukov.org
 https://github.com/SAKryukov
@@ -47,7 +49,7 @@ class ReadonlyInstanceFactory(object):
         self.a = "a"
         self.b = "b"
         self.c = Readonly.Attribute("c")
-        Readonly.ConvertReadonlyAttributes(Readonly, self)
+        Readonly.ConvertReadonlyAttributes(self)
 
 readonlyInstance = ReadonlyInstanceFactory()
 print(readonlyInstance.a)
