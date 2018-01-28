@@ -1,0 +1,8 @@
+Totally illiterate, never recommend:
+https://www.python-course.eu
+
+"Consenting adults":
+https://stackoverflow.com/questions/14594120/python-read-only-property
+
+Super! Read-only metaclass:
+https://gist.github.com/rIZenAShes/8469932
