@@ -89,7 +89,7 @@ Here is the idea: the entire trick is performed by the metaclass: if the attribu
 
 In fact, `ReadonlyBase` base class does not have to be used. It is shown in this code sample due to different syntax of Python 2 and Python 3. The class `Foo` could directly setup its _metaclass_, without any base classes. The only problem is the different syntax. Let's consider this unpleasant Python problem and its work-around.
 
-## Unification of Python 2 and 3 in the Demo
+### Unification of Python 2 and 3 in the Demo
 
 The usage sample [shown above](heading.the-solution3a-usage) lacks the definition of the class `ReadonlyBase`. Without this class, the class `Foo` could be created directly from the class `Readonly` used as its metaclass, using the following syntax:
 
