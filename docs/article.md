@@ -136,8 +136,7 @@ class Readonly(type):
                 setattr(NewMetaclass, attr, aProperty)
                 classdict[attr] = aProperty
                 classdict.pop(attr, None)               
-        return type.__new__(NewMetaclass, classname, bases, classdict)
-    # __new__</pre>
+        return type.__new__(NewMetaclass, classname, bases, classdict)</pre>
 
 It is easy to show but harder to explain.
 
