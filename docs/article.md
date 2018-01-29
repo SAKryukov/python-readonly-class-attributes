@@ -83,21 +83,34 @@ try:
 except Exception:
     print ("Cannot set attribute Foo.test")</pre>
 
-Here, the attribute `test` is just marked with the assignment to the expression of `Readonly.Attribute`; the desired constant value of any type is moved to an actual argument of the call. In fact, `Attribute` is the inner class of the class `Readonly`, so the whole call expression is the instantiation of this class.
+Here, the attribute `test` is just marked with the assignment to the expression using `Readonly.Attribute`; the desired constant value of any type is moved to an actual argument of the call. The object `Attribute` is the inner class of the class `Readonly`, so the whole call expression is call to its constructor.
 
-In fact, `Readonly` base does not have to be used. It is shown in this code sample due to different syntax of Python 2 and Python 3. In fact, without any base classes, the class `Foo` could directly setup its _metaclass_, which should be the same class `Readonly`, only the syntax is different. For example,
+Here is the idea: the entire trick is performed by the metaclass: if the attribute is assigned to a `Readonly.Attribute` object, instantiation of the class object removes this attributes and creates matching read-only property exposed by another metaclass. It may sounds tricky, but... it is really pretty tricky. Let's see how it works.
+
+In fact, `ReadonlyBase` base class does not have to be used. It is shown in this code sample due to different syntax of Python 2 and Python 3. The class `Foo` could directly setup its _metaclass_, without any base classes. The only problem is the different syntax. Let's consider this unpleasant Python problem and its work-around.
+
+## Unification of Python 2 and 3 in the Demo
+
+The usage sample [shown above](heading.the-solution3a-usage) lacks the definition of the class `ReadonlyBase`. Without this class, the class `Foo` could be created directly from the class `Readonly` used as its metaclass, using the following syntax:
 
 <pre lang="Python">
 # Python 2.*.*:
-class ReadonlyBase(object, metaclass = Readonly):
-    pass</pre>
+class Foo(object, metaclass = Readonly):
+    # ...</pre>
 
 <pre lang="Python">
 # Python 3.*.*:    
-class ReadonlyBase(object):
-    __metaclass__ = Readonly</pre>
+class Foo(object):
+    __metaclass__ = Readonly
+    # ...</pre>
 
-Here is the idea: the entire trick is performed by the metaclass: if the attribute is assigned to a `Readonly.Attribute` object, instantiation of the class object removes this attributes and creates matching read-only property exposed by another metaclass. It may sounds tricky, but... it is really pretty tricky. Let's see how it works.
+Alternatively, the base class `ReadonlyBase` could have been created in the same way. Instead, the file "demo.py" uses creation of an equivalent class object using _metaprogramming_ approach: 
+
+<pre lang="Python">ReadonlyBase = Readonly(str(), (), {})</pre>
+
+This piece of code is compatible with both lines of Python versions. To understand how it works, it's enough to know that a metaclass is just a class derived (directly or indirectly) from the class `type`. The call to its constructor creates an object which is a class: it has all the properties of a class and can be used as a class, and possibly, depending on the second parameter (`bases`), as a metaclass.
+
+At this point, the usage is explained. Now, it's time to show how the metaclass `Readonly` turns the class attributes marked by the assignment into read-only properties.
 
 ## How it Works?
 
@@ -124,7 +137,7 @@ class Readonly(type):
                 classdict[attr] = aProperty
                 classdict.pop(attr, None)               
         return type.__new__(NewMetaclass, classname, bases, classdict)
-    # __new__
+    # __new__</pre>
 
 It is easy to show but harder to explain.
 
@@ -135,3 +148,9 @@ Each instance of `NewMetaclass` is different. First of all, it is used as a cont
 When the original set of attributes of the class is traversed, the `Readonly.Attribute` instances are created and placed in the dictionary `NewMetaclass.attributeContainer`. For each such attribute, the property object is created using the constructor `property()`. For each distinct attribute name, such property is initialized with `lambda` expression generated based in the name, returning the value retrieved from `attributeContainer`.
 
 During these manipulations, original class dictionary passed to `type._new_` if modified to remove original wanna-be-read-only class attributes. Before the traversal, the dictionary is cloned, otherwise we could face exception (in case of Python 3) caused by the attempt of modification of a dictionary being iterated.
+
+## Versions
+
+**v.1.0.0**: Initial fully-functional version
+**v.1.0.1**: Minor fixes
+**v.2.0.0**: Stable version; Demo comes with Python 2 and 3 unification [explained above](#heading.unification-of-python-2-and-3-in-the-demo).
