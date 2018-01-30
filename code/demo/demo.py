@@ -28,7 +28,7 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from library.readonly import Readonly
 
-ReadonlyBase = Readonly(str(), (), {})
+ReadonlyBase = Readonly.Base()
 '''
 The creation of class ReadonlyBase shown above unifies Python 2 and 3
 

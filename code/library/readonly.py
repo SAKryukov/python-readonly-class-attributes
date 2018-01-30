@@ -34,6 +34,10 @@ class Readonly(type):
     class Attribute(object):
         def __init__(self, value):
             self.value = value
+
+    @classmethod
+    def Base(cls): # base class with access control of class attribute
+        return Readonly(str(), (), {})
     
     def __new__(metaclass, classname, bases, classdict):
         class NewMetaclass(metaclass):
