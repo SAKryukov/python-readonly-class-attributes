@@ -28,11 +28,11 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from library.readonly import Readonly
 
-ReadonlyBase = Readonly.Base()
+ReadonlyBase = Readonly(str(), (), {})
 '''
 The creation of class ReadonlyBase shown above unifies Python 2 and 3
 
-Normally, equivalent version-dependent syntax would be:
+Normally, equivalent version-dependent sample of syntax would be:
 
 Python 2.*.*:
 class ReadonlyBase(object):
@@ -44,35 +44,15 @@ class ReadonlyBase(object, metaclass = Readonly):
 
 '''
 
-class Foo(ReadonlyBase): # or make Readonly a metaclass of Foo, see above
+class Foo(ReadonlyBase):
     bar = 100
     test = Readonly.Attribute(13)
-    def __init__(self):
-        self.a = 1
-        self.b = Readonly.Attribute(3.14159)
 
-print("Class attributes:")
-print(str())
-
-print("Class attribute Foo.bar: " + str(Foo.bar))
+print("Foo.bar: " + str(Foo.bar))
 Foo.bar += 1
-print("Modified class attribute Foo.bar: " + str(Foo.bar))
-print("Class attribute Foo.test: " + str(Foo.test))
+print("Modified Foo.bar: " + str(Foo.bar))
+print("Foo.test: " + str(Foo.test))
 try:
-    Foo.test += 1 # will raise exception
+    Foo.test = Foo.test + 1 # will raise exception
 except Exception:
-    print ("Cannot set class attribute Foo.test")
-
-print(str())
-print("Instance attributes:")
-print(str())
-
-instance = Foo()
-print("Instance attribute a: " + str(instance.a))
-Foo.bar += 1
-print("Modified instance attribute a: " + str(instance.a))
-print("Instance attribute b: " + str(instance.b))
-try:
-    instance.b += 1 # will raise exception
-except Exception:
-    print ("Cannot set instance attribute b")
+    print ("Cannot set attribute Foo.test")
