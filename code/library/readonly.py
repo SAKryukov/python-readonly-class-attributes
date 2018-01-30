@@ -56,14 +56,14 @@ class Readonly(type):
                     setattr(cls, name, aProperty)
                 return instance
         clone = dict(classdict)
-        for attr, value in clone.items():
+        for name, value in clone.items():
             if not isinstance(value, metaclass.Attribute):
                 continue;
-            getattr(NewMetaclass, DefinitionSet.attributeContainerName)[attr] = value.value
-            aProperty = property(getAttrFromMetaclass(attr))
-            setattr(NewMetaclass, attr, aProperty)
-            classdict[attr] = aProperty
-            classdict.pop(attr, None)               
+            getattr(NewMetaclass, DefinitionSet.attributeContainerName)[name] = value.value
+            aProperty = property(getAttrFromMetaclass(name))
+            setattr(NewMetaclass, name, aProperty)
+            classdict[name] = aProperty
+            classdict.pop(name, None)               
         return type.__new__(NewMetaclass, classname, bases, classdict)
     # __new__
 
