@@ -24,6 +24,9 @@ https://www.codeproject.com/Members/SAKryukov
 
 '''
 
+class DefinitionSet:
+    attributeContainerName = "."
+
 class Readonly(type):
 
     class Attribute(object):
@@ -35,18 +38,32 @@ class Readonly(type):
         return Readonly(str(), (), {})
     
     def __new__(metaclass, classname, bases, classdict):
-        class NewMetaclass(metaclass):
-            attributeContainer = {}
         def getAttrFromMetaclass(attr):
-            return lambda cls: type(cls).attributeContainer[attr]
+            return lambda cls: getattr(type(cls), DefinitionSet.attributeContainerName)[attr]
+        class NewMetaclass(metaclass):
+            setattr(metaclass, DefinitionSet.attributeContainerName, {})
+            def __call__(cls, *args, **kwargs):
+                instance = type.__call__(cls, *args, **kwargs)
+                setattr(cls, DefinitionSet.attributeContainerName, {})
+                names = dir(instance)
+                for name in names:
+                    value = getattr(instance, name)
+                    if not isinstance(value, metaclass.Attribute):
+                        continue;
+                    delattr(instance, name)
+                    getattr(cls, DefinitionSet.attributeContainerName)[name] = value.value
+                    aProperty = property(getAttrFromMetaclass(name))
+                    setattr(cls, name, aProperty)
+                return instance
         clone = dict(classdict)
         for attr, value in clone.items():
-            if isinstance(value, metaclass.Attribute):
-                NewMetaclass.attributeContainer[attr] = value.value
-                aProperty = property(getAttrFromMetaclass(attr))
-                setattr(NewMetaclass, attr, aProperty)
-                classdict[attr] = aProperty
-                classdict.pop(attr, None)               
+            if not isinstance(value, metaclass.Attribute):
+                continue;
+            getattr(NewMetaclass, DefinitionSet.attributeContainerName)[attr] = value.value
+            aProperty = property(getAttrFromMetaclass(attr))
+            setattr(NewMetaclass, attr, aProperty)
+            classdict[attr] = aProperty
+            classdict.pop(attr, None)               
         return type.__new__(NewMetaclass, classname, bases, classdict)
     # __new__
 

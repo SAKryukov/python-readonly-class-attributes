@@ -47,6 +47,11 @@ class ReadonlyBase(object, metaclass = Readonly):
 class Foo(ReadonlyBase):
     bar = 100
     test = Readonly.Attribute(13)
+    def __init__(self):
+        self.a = Readonly.Attribute(1)
+        self.b = 2
+        self.c = Readonly.Attribute(1)
+a = Foo()
 
 print("Foo.bar: " + str(Foo.bar))
 Foo.bar += 1
