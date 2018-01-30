@@ -24,11 +24,6 @@ https://www.codeproject.com/Members/SAKryukov
 
 '''
 
-class DefinitionSet:
-    hiddenAttributeContainerName = '.'
-    exceptionMsgOldStyleClass = "New-style class should be used; derive it from the type 'object'"
-# class DefinitionSet
-
 class Readonly(type):
 
     class Attribute(object):
