@@ -13,4 +13,4 @@ class Foo(ReadonlyBase):
         self.b = Readonly.Attribute(b)
 ```
 
-Partially based on the ideas by [rIZenAShes](https://github.com/rIZenAShes) found [on GitHub](https://gist.github.com/rIZenAShes/8469932)
+Partially based on the code sample by [rIZenAShes](https://github.com/rIZenAShes) found [on GitHub](https://gist.github.com/rIZenAShes/8469932)

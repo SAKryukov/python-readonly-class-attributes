@@ -1,4 +1,4 @@
-Python Readonly Class Attributes: Complete Solution[](title)
+Python Readonly Attributes: Complete Solution[](title)
 
 Reliable solution does the trick: it does not depend on any naming conventions, works for both Python 2 and 3 and offers clear and concise usage syntax
 
@@ -12,27 +12,49 @@ Reliable solution does the trick: it does not depend on any naming conventions, 
 
 ## Introduction
 
-This solution is based on the brilliant ideas by [rIZenAShes](https://github.com/rIZenAShes) found [on GitHub](
-https://gist.github.com/rIZenAShes/8469932).
+This solution is based on the small code sample by [rIZenAShes](https://github.com/rIZenAShes) found [on GitHub](
+https://gist.github.com/rIZenAShes/8469932), which demonstrates quite interesting ideas.
 
 As to the code, I found it, by far, not satisfactory. First, it is only compatible with Python 2, not 3. Worse, it is based on some naming conventions. The attributes to be exposed are marked by leading underscore, which is removed be the metaclass for exposed read-only properties. The present solution is compatible with both lines of Python versions and offers clear and concise syntax.
 
 So, what's the big deal?
 
-For class instances, the solution is simple enough: ready only properties:
+Implementing read-only attributes is fairly easy:
 <pre lang="Python">
-class PropertySet:
+class Meta(type):
     @property
-    def readOnlyValue(self):
+    def RO(self):
         return 13
-    readWriteValue = 14
 
-propertyDemo = PropertySet()
-print (PropertySet.readOnlyInt)
-print (propertyDemo.readOnlyValue)
-propertyDemo.readOnlyValue = 100 # will throw exception</pre>
+class DefinitionSet(Meta(str(), (), {})):
+    greetings = "Hello!"
+    myNameFormat = "My name is {}."
+    durationSeconds = 3.5
+    color = { "opacity": 0.7, "wavelength": 400 }
+    @property
+    def RO(self):
+        return 14
+    def __init__(self):
+        self.greetings = "Hello again!"
+        self.myNameFormat = "Let me introduce myself. My name is {}."
+        self.durationSeconds = 3.6
+        self.color = { "opacity": 0.8, "wavelength": 410 }
 
-Note that in this example, `readWriteValue` is not an instance, but is a _class attribute_. In contrast to an _instance attribute_, it is not so easy to make it read-only.
+instance = DefinitionSet()
+# instance.RO and DefinitionSet.RO are two different
+# read-only attributes</pre>
+
+In this code sample, `instance.RO` behaves as an _instance attribute_ and `DefinitionSet.RO` — as a _class attribute_; they are introduced as `read-only properties`.
+
+Note certain inconvenience in development: while in usage such property is used as a peer of some "regular" attributes (for example, `instance.RO` vs. `instance.color`), it is set up on an upper level, the level of the _object type_. For `instance`, this is instance type, `type(instance) == DefinitionSet`; for `DefinitionSet`, this is its _metaclass_, `type(DefinitionSet) == Meta`. (Not so obvious way of setting up a metaclass for `DefinitionSet`, through _inheritance_ is shown; this is done for the sole purpose of showing equivalent code for Python 2 and 3, [see below](#heading.unification-of-python-2-and-3-in-the-demo).)
+
+Definition of read-only class properties looks a bit more complicated than in case of instance properties: with instances, the description at least can be placed in _almost_ one place (compare `DefinitionSet.RO` and `self.greetings` in `__init__`). For a class attribute, the property definition should be placed in a separate class (`Meta` in our sample).
+
+Now, the problem is alleviated with the small device, `@property` _decorator_, which can be considered as kind of [syntactic sugar](https://en.wikipedia.org/wiki/Syntactic_sugar). If we wanted to start _[ab ovo](https://en.wikipedia.org/wiki/Ab_ovo)_, we would show mode fundamental use of _descriptors_, based on `__get__`, as it is described in documentation for [Python 2](https://docs.python.org/2/howto/descriptor.html) and [Python 3](https://docs.python.org/3/howto/descriptor.html).
+
+So, can we create syntactic sugar sweeter than that, shorter, more clear and concise? Would it make any practical sense?
+
+The answer depends on our usage of _class attributes_, as turning them into read-only properties looks more confusing and less clear.
 
 ## Why Class Attributes?
 
@@ -64,8 +86,6 @@ print (definitionSet.durationSeconds)</pre>
 
 It is apparent that the option with class attribute is shorter and more convenient. Normally, the instance is needed only if we need more than one instance, but in this case even more boring part would be passing values as `__init__` arguments. For a single set of definitions it would be totally pointless.
 
-The only real benefit of instantiation of the class is the ease of creation of read-only properties via the `@property` _decorator_. With class objects, it's pretty tricky. But let's fix it, so it will look even simpler than the use of `@property`.
-
 ## Solution for Class Attributes: Usage
 
 First, let's see how it can be used:
@@ -83,9 +103,9 @@ try:
 except Exception:
     print ("Cannot set attribute Foo.test")</pre>
 
-Here, the attribute `test` is just marked with the assignment to the expression using `Readonly.Attribute`; the desired constant value of any type is moved to an actual argument of the call. The object `Attribute` is the inner class of the class `Readonly`, so the whole call expression is call to its constructor.
+Here, the attribute `test` is just marked with the assignment using `Readonly.Attribute`; the desired constant value of any type is moved to an actual argument of the call. The object `Attribute` is the inner class of the class `Readonly`; the whole line is the call to its constructor and assignment.
 
-Here is the idea: the entire trick is performed by the metaclass: if the attribute is assigned to a `Readonly.Attribute` object, instantiation of the class object removes this attributes and creates matching read-only property exposed by another metaclass. It may sounds tricky, but... it is really pretty tricky. Let's see how it works.
+Here is the idea: the entire trick is performed by the metaclass: if the attribute is assigned to a `Readonly.Attribute` object, instantiation of the class object removes this attributes and creates matching read-only property exposed by another metaclass. It may sounds tricky, but... it is really pretty tricky. [Below, we can see how it works.](#heading.how-it-works3f)
 
 In fact, `ReadonlyBase` base class does not have to be used. It is shown in this code sample due to different syntax of Python 2 and Python 3. The class `Foo` could directly setup its _metaclass_, without any base classes. The only problem is the different syntax. Let's consider this unpleasant Python problem and its work-around.
 
@@ -155,9 +175,7 @@ Isn't that quite enough? No. We can make one big step further.
 
 Can the same mechanism be used for instance attributes, too?
 
-First of all, it is not so critically important as in case of class attributes, because read-only `@property` works just fine, only requiring some more lines per each property.
-
-But when the mechanism of using `Readonly.Attribute` is already available, it would be more natural to have more concise and uniform look for both class and instance attributes:
+Perhaps we would not bother if we needed only instance attributes and not class attributes. But when the mechanism of using `Readonly.Attribute` is already available, it would be more natural to have more concise and uniform look for both class and instance attributes:
 
 <pre lang="Python">
 class Foo(ReadonlyBase): # or make Readonly a metaclass of Foo, see above
@@ -167,11 +185,11 @@ class Foo(ReadonlyBase): # or make Readonly a metaclass of Foo, see above
         self.a = 1
         self.b = Readonly.Attribute(3.14159)</pre>
 
-So, how to achieve similar read-only effect on the instance attributes, such as `b`?
+So, how to achieve similar read-only effect on the instance attributes, such as `b`? This is shown below.
 
 ## Generalized Solution
 
-Surprisingly, applying the similar technique to instance attribute appears much trickier than with class attributes, originally more problematic.
+Surprisingly, applying the similar technique to instance attribute appears much trickier than with class attributes.
 
 The major problem here is working with several instances of the class. Implementation of a property, read-only or not, require modification of the instance class. It can be easily done in the `__new__` method of the metaclass, but it would work only on one instantiation of this class. On the attempt of creating of the second instance, a constructor assigning `Readonly.Attribute` to the same attribute will fail, because the modified class already made to provide read-only functionality for this attribute. Therefore, we come to the situation when we need to create a separate class for each instance. 
 
@@ -235,7 +253,7 @@ Another trick is "hiding" the dictionary instance stored in the class and given 
 
 ## Versions
 
-**v.1.0.0**: Initial fully-functional version
-**v.1.0.1**: Minor fixes
+**v.1.0.0**: Initial fully-functional version.
+**v.1.0.1**: Minor fixes.
 **v.2.0.0**: Stable version; Demo comes with Python 2 and 3 unification [explained above](#heading.unification-of-python-2-and-3-in-the-demo).
-**v.3.0.0**: Major [generalization](#heading.generalized-solution) of the mechanism to both class and instance attributes
+**v.3.0.0**: Major [generalization](#heading.generalized-solution) of the mechanism to both class and instance attributes.

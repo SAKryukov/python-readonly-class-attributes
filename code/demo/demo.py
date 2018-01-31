@@ -11,7 +11,7 @@ https://www.codeproject.com/Articles/1227368/Python-Readonly-Class-Attributes
 Code:
 https://github.com/SAKryukov/python-readonly-class-attributes
 
-Partially based on the ideas of rIZenAShes, https://github.com/rIZenAShes:
+Partially based on the code sample by rIZenAShes, https://github.com/rIZenAShes:
 https://gist.github.com/rIZenAShes/8469932
 
 Copyright (C) 2018 by Sergey A Kryukov
