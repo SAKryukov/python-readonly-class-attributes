@@ -53,7 +53,9 @@ class Readonly(type):
                     if isinstance(value, metaclass.Attribute):
                         if hasattr(newInstance, name):
                             delattr(newInstance, name)
-                        getattr(newClass, DefinitionSet.attributeContainerName)[name] = value.value
+                        getattr(
+                            newClass,
+                            DefinitionSet.attributeContainerName)[name] = value.value
                         aProperty = property(getAttrFromClass(name))
                         setattr(newClass, name, aProperty)
                     else:
