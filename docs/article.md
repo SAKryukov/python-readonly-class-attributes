@@ -66,7 +66,7 @@ It is apparent that the option with class attribute is shorter and more convenie
 
 The only real benefit of instantiation of the class is the ease of creation of read-only properties via the `@property` _decorator_. With class objects, it's pretty tricky. But let's fix it, so it will look even simpler than the use of `@property`.
 
-## The Solution: Usage
+## Solution for Class Attributes: Usage
 
 First, let's see how it can be used:
 <pre lang="Python">
@@ -89,7 +89,7 @@ Here is the idea: the entire trick is performed by the metaclass: if the attribu
 
 In fact, `ReadonlyBase` base class does not have to be used. It is shown in this code sample due to different syntax of Python 2 and Python 3. The class `Foo` could directly setup its _metaclass_, without any base classes. The only problem is the different syntax. Let's consider this unpleasant Python problem and its work-around.
 
-## Unification of Python 2 and 3 in the Demo
+### Unification of Python 2 and 3 in the Demo
 
 The usage sample [shown above](heading.the-solution3a-usage) lacks the definition of the class `ReadonlyBase`. Without this class, the class `Foo` could be created directly from the class `Readonly` used as its metaclass, using the following syntax:
 
@@ -129,13 +129,14 @@ class Readonly(type):
         def getAttrFromMetaclass(attr):
             return lambda cls: type(cls).attributeContainer[attr]
         clone = dict(classdict)
-        for attr, value in clone.items():
-            if isinstance(value, metaclass.Attribute):
-                NewMetaclass.attributeContainer[attr] = value.value
-                aProperty = property(getAttrFromMetaclass(attr))
-                setattr(NewMetaclass, attr, aProperty)
-                classdict[attr] = aProperty
-                classdict.pop(attr, None)               
+        for name, value in clone.items():
+            if not isinstance(value, metaclass.Attribute):
+                continue;
+            getattr(NewMetaclass, DefinitionSet.attributeContainerName)[name] = value.value
+            aProperty = property(getAttrFromMetaclass(name))
+            setattr(NewMetaclass, name, aProperty)
+            classdict[name] = aProperty
+            classdict.pop(name, None)               
         return type.__new__(NewMetaclass, classname, bases, classdict)</pre>
 
 It is easy to show but harder to explain.
@@ -148,8 +149,93 @@ When the original set of attributes of the class is traversed, the `Readonly.Att
 
 During these manipulations, original class dictionary passed to `type._new_` if modified to remove original wanna-be-read-only class attributes. Before the traversal, the dictionary is cloned, otherwise we could face exception (in case of Python 3) caused by the attempt of modification of a dictionary being iterated.
 
+Isn't that quite enough? No. We can make one big step further.
+
+## What to Do with Instance Attributes?
+
+Can the same mechanism be used for instance attributes, too?
+
+First of all, it is not so critically important as in case of class attributes, because read-only `@property` works just fine, only requiring some more lines per each property.
+
+But when the mechanism of using `Readonly.Attribute` is already available, it would be more natural to have more concise and uniform look for both class and instance attributes:
+
+<pre lang="Python">
+class Foo(ReadonlyBase): # or make Readonly a metaclass of Foo, see above
+    bar = 100
+    test = Readonly.Attribute(13)
+    def __init__(self):
+        self.a = 1
+        self.b = Readonly.Attribute(3.14159)</pre>
+
+So, how to achieve similar read-only effect on the instance attributes, such as `b`?
+
+## Generalized Solution
+
+Surprisingly, applying the similar technique to instance attribute appears much trickier than with class attributes, originally more problematic.
+
+The major problem here is working with several instances of the class. Implementation of a property, read-only or not, require modification of the instance class. It can be easily done in the `__new__` method of the metaclass, but it would work only on one instantiation of this class. On the attempt of creating of the second instance, a constructor assigning `Readonly.Attribute` to the same attribute will fail, because the modified class already made to provide read-only functionality for this attribute. Therefore, we come to the situation when we need to create a separate class for each instance. 
+
+The real trick is to inject a hook in the class constructor, which is done via the call to `type.__call__` in the body of the method `__call__` of the metaclass.
+
+When this call creates an `instance`, we need another instance of the class created dynamically. This new instance, `newInstance`, is created from the dynamically-created class `NewClass` without a constructor. Now, using two instances and two classes, new and old ones, we can manipulate instance attributes to distribute them between `newInstance` --- for read-write instance attributes and `NewClass` --- for read-only properties replacing instance attributes: 
+
+<pre lang="Python">
+class DefinitionSet:
+    attributeContainerName = "."
+
+class Readonly(type):
+
+    class Attribute(object):
+        def __init__(self, value):
+            self.value = value
+
+    @classmethod
+    def Base(cls): # base class with access control of class attribute
+        return Readonly(str(), (), {})
+    
+    def __new__(metaclass, className, bases, classDictionary):
+        def getAttrFromClass(attr):
+            return lambda cls: getattr(type(cls), DefinitionSet.attributeContainerName)[attr]
+        class NewMetaclass(metaclass):
+            setattr(metaclass, DefinitionSet.attributeContainerName, {})
+            def __call__(cls, *args, **kwargs):
+                instance = type.__call__(cls, *args, **kwargs)
+                newClass = metaclass(cls.__name__, cls.__bases__, {})
+                newInstance = type.__call__(newClass)
+                setattr(newClass, DefinitionSet.attributeContainerName, {})
+                names = dir(instance)
+                for name in names:
+                    if hasattr(cls, name):
+                        continue
+                    value = getattr(instance, name)
+                    if isinstance(value, metaclass.Attribute):
+                        if hasattr(newInstance, name):
+                            delattr(newInstance, name)
+                        getattr(newClass, DefinitionSet.attributeContainerName)[name] = value.value
+                        aProperty = property(getAttrFromClass(name))
+                        setattr(newClass, name, aProperty)
+                    else:
+                        setattr(newInstance, name, getattr(instance, name))
+                return newInstance
+        clone = dict(classDictionary)
+        for name, value in clone.items():
+            if not isinstance(value, metaclass.Attribute):
+                continue;
+            getattr(NewMetaclass, DefinitionSet.attributeContainerName)[name] = value.value
+            aProperty = property(getAttrFromClass(name))
+            setattr(NewMetaclass, name, aProperty)
+            classDictionary[name] = aProperty
+            classDictionary.pop(name, None)               
+        return type.__new__(NewMetaclass, className, bases, classDictionary)
+</pre>
+
+Note that `getAttrFromClass` is reused between different classes, the class of the instance used for implementation of instance read-only properties and for metaclass, used for implementation of class read-only properties. However, the mechanism of the substitution is different.
+
+Another trick is "hiding" the dictionary instance stored in the class and given the attribute name `DefinitionSet.attributeContainerName`. With such name, this attribute cannot appear as a result of "usual" operation dot-notation syntax, `instance.attribute = value`; it can only be operated via the methods `getattr/setattr/delattr/hasattr`. This seems to be really important, because it helps to avoid all possible collision with user attributes based on dot notation, even if the user uses attribute names with any number of underscores. This way, the implementation does not rely on any kind of naming conventions, so typical for Python developers.
+
 ## Versions
 
 **v.1.0.0**: Initial fully-functional version
 **v.1.0.1**: Minor fixes
 **v.2.0.0**: Stable version; Demo comes with Python 2 and 3 unification [explained above](#heading.unification-of-python-2-and-3-in-the-demo).
+**v.3.0.0**: Major [generalization](#heading.generalized-solution) of the mechanism to both class and instance attributes
