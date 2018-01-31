@@ -1,8 +1,8 @@
-# Python Readonly Class Attributes: Complete Solution
+## Python Readonly Class and Instance Attributes: Complete Solution
 
 [Original publication](https://www.codeproject.com/Articles/1227368/Python-Readonly-Class-Attributes)
 
-## Basic usage:
+### Basic usage:
 
 ```
 class Foo(ReadonlyBase):
