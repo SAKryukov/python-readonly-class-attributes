@@ -64,7 +64,7 @@ class Readonly(type):
         clone = dict(classDictionary)
         for name, value in clone.items():
             if not isinstance(value, metaclass.Attribute):
-                continue;
+                continue
             getattr(NewMetaclass, DefinitionSet.attributeContainerName)[name] = value.value
             aProperty = property(getAttrFromClass(name))
             setattr(NewMetaclass, name, aProperty)

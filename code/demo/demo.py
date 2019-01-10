@@ -54,8 +54,8 @@ print(str())
 
 print("Class attribute Foo.bar: " + str(Foo.bar))
 Foo.bar += 1
-print("Modified class attribute Foo.bar: " + str(Foo.bar))
-print("Class attribute Foo.test: " + str(Foo.test))
+print("Modified class attribute Foo.bar: {}".format(Foo.bar))
+print("Class attribute Foo.test: {}".format(Foo.test))
 try:
     Foo.test += 1 # will raise exception
 except Exception:
@@ -66,10 +66,10 @@ print("Instance attributes:")
 print(str())
 
 instance1 = Foo(300, 3.14159)
-print("Instance attribute a: " + str(instance1.a))
+print("Instance attribute a: {}".format(instance1.a))
 instance1.a += 1
-print("Modified instance attribute a: " + str(instance1.a))
-print("Instance attribute b: " + str(instance1.b))
+print("Modified instance attribute a: {}".format(instance1.a))
+print("Instance attribute b: {}".format(instance1.b))
 try:
     instance1.b += 1 # will raise exception
 except Exception:
@@ -78,10 +78,10 @@ except Exception:
 print("Another instance:")
 
 instance2 = Foo(400, 2.71828)
-print("Instance attribute a: " + str(instance2.a))
+print("Instance attribute a: {}".format(instance2.a))
 instance2.a += 1
-print("Modified instance attribute a: " + str(instance2.a))
-print("Instance attribute b: " + str(instance2.b))
+print("Modified instance attribute a: {}".format(instance2.a))
+print("Instance attribute b: {}".format(instance2.b))
 try:
     instance2.b += 1 # will raise exception
 except Exception:
